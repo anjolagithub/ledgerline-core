@@ -1,24 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
+import {ILedgerLineProofVerifier} from "../../src/interfaces/ILedgerLineProofVerifier.sol";
 import {IAttestcoinProofVerifier} from "../../src/interfaces/IAttestcoinProofVerifier.sol";
 
-/// @notice Test double standing in for the real precompile — lets us test
-///         LedgerLineReadabilityManager and LedgerLineRegistry's business logic
-///         without needing a live CC3 testnet connection for every `forge test` run.
-contract MockProofVerifier is IAttestcoinProofVerifier {
+contract MockLedgerLineProofVerifier is ILedgerLineProofVerifier {
     bool public shouldVerify = true;
 
     function setShouldVerify(bool value) external {
         shouldVerify = value;
     }
 
-    function verifyAndEmit(
+    function verify(
         uint64,
         uint64,
         bytes calldata,
-        MerkleProof calldata,
-        ContinuityProof calldata
+        IAttestcoinProofVerifier.MerkleProof calldata,
+        IAttestcoinProofVerifier.ContinuityProof calldata
     ) external view override returns (bool) {
         return shouldVerify;
     }

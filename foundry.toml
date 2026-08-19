@@ -4,8 +4,10 @@ out = "out"
 libs = ["lib"]
 solc_version = "0.8.26"
 optimizer = true
+via_ir = true
 optimizer_runs = 200
 fs_permissions = [{ access = "read", path = "./" }]
+evm_version = "london"
 
 [rpc_endpoints]
 sepolia = "${SEPOLIA_RPC_URL}"
