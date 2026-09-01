@@ -1,14 +1,227 @@
-# LedgerLine — Threat Model
+# LedgerLine Threat Model
 
-| Risk | Mitigation | Status |
-|---|---|---|
-| Self-dealing lender registers and repays a fake loan to themselves | Owner-gated lender allowlist (`approvedLenders`) enforced on the source-chain registry itself, not just the hub | Implemented, tested |
-| Replay of a valid proof to inflate score multiple times | `processedQueries` mapping keyed by chain + block height + full transaction bytes | Implemented, tested |
-| Spoofed source contract — a log that matches an event signature but wasn't emitted by our real contracts | Decoder confirms both event signature *and* emitting contract address before dispatch | Implemented, tested |
-| A failing source-chain transaction still gets processed | Receipt status byte explicitly checked (`status != 1` reverts) | Implemented, tested |
-| Proof verifier returns `false` without reverting, silently accepted | Manager explicitly checks the boolean return value rather than trusting the callee | Implemented, tested (caught by our own test suite before deployment) |
-| Score gamed via many tiny repayments | Score only increments on full repayment | Implemented, tested |
-| Wrong event signature accepted or a real one silently rejected | Caught in practice during our own testnet run — an incorrectly computed event hash caused a legitimate transaction to be rejected; fixed and redeployed | Real incident, resolved |
-| Borrower identity linked to sensitive real-world financial data on an immutable public ledger | Documented Phase 2 direction: hashed metadata or ZK proofs for identity | Documented, not built |
-| Gas cost of proof submission at scale | Attestcoin SDK supports batch proofs (`generateBatchProof`, up to 10 tx per batch) | Documented, not implemented |
-| Centralized control via upgradeable contracts | Deliberately not upgradeable — a `Pausable` circuit breaker exists instead, trading upgrade convenience for trust minimization | Design decision |
+## 1. Security objective
+
+LedgerLine's primary security objective is to prevent false financial activity from becoming trusted credit history.
+
+The core threat is not merely a hacked frontend.
+
+The core threat is:
+
+```text
+False financial event
+        ↓
+accepted as legitimate
+        ↓
+credit profile manipulated
+        ↓
+financing decision affected
+```
+
+LedgerLine is designed to break this chain.
+
+## 2. Threat: self-reported repayment
+
+### Attack
+
+A borrower claims to have repaid a loan.
+
+### Mitigation
+
+Credit state cannot be directly updated by the borrower.
+
+Repayment must originate from a source-chain transaction that passes through proof verification.
+
+## 3. Threat: forged event
+
+### Attack
+
+An attacker deploys another contract that emits a `LoanRepaid` event with fabricated data.
+
+### Mitigation
+
+The ReadabilityManager verifies both:
+
+* event signature
+* authorized emitting contract
+
+An identical event from an unauthorized address is rejected.
+
+## 4. Threat: invalid source transaction
+
+### Attack
+
+An attacker submits a proof for a reverted source-chain transaction.
+
+### Mitigation
+
+The decoded receipt status must equal:
+
+```text
+1
+```
+
+Otherwise the transaction reverts.
+
+## 5. Threat: proof replay
+
+### Attack
+
+An attacker repeatedly submits the same valid repayment proof.
+
+### Mitigation
+
+The ReadabilityManager records processed query IDs.
+
+Previously processed queries revert.
+
+## 6. Threat: unauthorized registry writes
+
+### Attack
+
+An attacker directly calls the registry's state-changing functions.
+
+### Mitigation
+
+Registry mutations require:
+
+```text
+READABILITY_ROLE
+```
+
+The relayer does not receive this role.
+
+## 7. Threat: unauthorized source lender
+
+### Attack
+
+An arbitrary wallet originates fake loans through the source registry.
+
+### Mitigation
+
+The source registry has an owner-controlled lender allowlist.
+
+Only approved lenders can call `registerLoan`.
+
+## 8. Threat: malicious frontend
+
+### Attack
+
+A frontend displays a fabricated credit score.
+
+### Mitigation
+
+The frontend is not the source of truth.
+
+Credit profile data can be read directly from the deployed Creditcoin registry.
+
+The frontend is therefore a presentation layer.
+
+## 9. Threat: compromised relayer
+
+### Attack
+
+The off-chain relayer is compromised.
+
+### Impact
+
+The relayer can submit arbitrary proof packages, but it cannot directly modify registry state.
+
+Invalid proofs fail verification.
+
+The relayer therefore has less authority than the on-chain registry.
+
+## 10. Threat: compromised administrator
+
+The administrator controls important configuration operations, including:
+
+* source-chain configuration
+* role administration
+* lender allowlisting
+* pause controls
+
+This remains a trust assumption.
+
+A production deployment should therefore use:
+
+* multisig administration
+* operational separation
+* monitoring
+* timelocked configuration changes where appropriate
+
+## 11. Threat: malicious source contract
+
+LedgerLine currently trusts explicitly configured source contracts.
+
+If a configured source contract itself contains malicious logic, the system can prove that its transactions occurred but cannot determine whether the underlying business relationship was economically legitimate.
+
+This is an important distinction:
+
+> Cryptographic proof establishes that an on-chain event happened. It does not independently establish that the underlying real-world transaction was commercially honest.
+
+## 12. Threat: economic manipulation
+
+The current score is deliberately simple.
+
+Possible future manipulation vectors include:
+
+* circular lending
+* related-party loans
+* artificial repayment volume
+* low-value loan farming
+* coordinated lender/borrower behavior
+
+The current system partially addresses fragmentation by scoring only full loan completion, but economic Sybil resistance requires additional policy and identity controls.
+
+## 13. Threat: frontend demo confusion
+
+The frontend contains demonstration invoice and underwriting records.
+
+These must never be represented as real customer records.
+
+The frontend therefore labels demonstration data as:
+
+```text
+DEMO / TESTNET DATA
+```
+
+Production versions should replace sample records with authenticated data from actual registries.
+
+## 14. Security posture
+
+LedgerLine's core security strategy is layered:
+
+```text
+Access control
+     +
+Source contract allowlist
+     +
+Cryptographic proof
+     +
+Transaction-status validation
+     +
+Authorized-emitter validation
+     +
+Receipt decoding
+     +
+Replay protection
+     +
+Fail-closed dispatch
+```
+
+No single layer is intended to be the complete security model.
+
+## 15. Production hardening
+
+Before mainnet deployment, the following should be added:
+
+* independent smart-contract audit
+* multisig administration
+* formal verification of critical invariants
+* production relayer redundancy
+* monitoring and alerting
+* rate limiting
+* source-contract upgrade governance
+* richer default handling
+* economic Sybil resistance
+* production identity/KYB controls

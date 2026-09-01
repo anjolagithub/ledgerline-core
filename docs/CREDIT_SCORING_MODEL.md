@@ -1,36 +1,192 @@
-# LedgerLine — Credit Scoring Model
+# LedgerLine Credit Scoring Model
 
-## Score range and initialization
+## 1. Objective
 
-Scores range 0–1000. A borrower's profile initializes at a base score of 500
-on their first verified interaction — not 0, since a new profile isn't
-necessarily a risky one; it's simply unproven yet.
+LedgerLine's scoring engine converts verified repayment behavior into a simple, transparent credit score.
 
-## Scoring rule
+The model deliberately favors explainability over complexity.
 
-The score increases by 15 points **only when a loan is fully repaid**
-(`repaidAmount >= expectedRepaymentAmount`), capped at 1000. Partial
-repayments update `totalVerifiedRepayments` and move loan status to
-`PartlyRepaid`, but do not move the score.
+Every score change must be attributable to an on-chain verified event.
 
-## Why full-repayment-only, not per-payment
+## 2. Score range
 
-Scoring on every partial payment would let a borrower inflate their score by
-splitting one obligation into many small repayments. Requiring full
-completion means the score reflects proven, completed obligations —
-consistent with how traditional credit scoring treats "paid as agreed."
+```text
+Minimum: 0
+Base:    500
+Maximum: 1000
+```
 
-## What's tracked per borrower (`CreditMetrics`)
+A new borrower begins at:
 
-- `score` — 0–1000
-- `totalVerifiedRepayments` — cumulative amount, across all loans
-- `completedLoanCount` — number of fully repaid loans
-- `lastUpdated` — timestamp of the most recent verified event
+```text
+500
+```
 
-## Known limitations (by design, documented rather than hidden)
+on their first verified repayment interaction.
 
-- The model doesn't yet weight for repayment speed, loan size, or default
-  history on other loans — those are natural extensions once real usage data
-  exists.
-- No negative scoring for missed deadlines yet; `LoanExpired` is a stated
-  status in `LedgerLineTypes.sol` but not yet wired into a score penalty.
+The base score represents an unproven borrower rather than an automatically bad borrower.
+
+## 3. Full repayment
+
+A borrower receives:
+
+```text
++15
+```
+
+when a loan is fully repaid.
+
+The increment occurs only when:
+
+```text
+repaidAmount >= expectedRepaymentAmount
+```
+
+The score cannot exceed:
+
+```text
+1000
+```
+
+## 4. Partial repayment
+
+Partial repayment:
+
+* increases `totalVerifiedRepayments`
+* changes loan state to `PartlyRepaid`
+* updates `lastUpdated`
+* does not increase the credit score
+
+This prevents score inflation through artificial payment fragmentation.
+
+For example, a borrower should not be able to turn one obligation into twenty tiny repayments and receive twenty score increases.
+
+## 5. Credit profile
+
+Each borrower has:
+
+```text
+score
+totalVerifiedRepayments
+completedLoanCount
+lastUpdated
+```
+
+### score
+
+Current score from 0 to 1000.
+
+### totalVerifiedRepayments
+
+Cumulative repayment value verified through LedgerLine.
+
+### completedLoanCount
+
+Number of loans that reached full repayment.
+
+### lastUpdated
+
+Timestamp of the most recent verified repayment interaction.
+
+## 6. Example
+
+A borrower starts with:
+
+```text
+500
+```
+
+Loan 1 is fully repaid:
+
+```text
+500 + 15 = 515
+```
+
+Loan 2 is partially repaid:
+
+```text
+515
+```
+
+No score increase occurs.
+
+Loan 2 is later fully repaid:
+
+```text
+515 + 15 = 530
+```
+
+## 7. Financing eligibility
+
+The financing layer currently applies:
+
+| Score     | Requirement       | Advance rate |
+| --------- | ----------------- | -----------: |
+| Below 600 | Any               | Not eligible |
+| 600–749   | ≥1 completed loan |          50% |
+| 750–899   | ≥1 completed loan |          65% |
+| 900–1000  | ≥1 completed loan |          80% |
+
+The calculated advance is then capped by:
+
+```text
+totalVerifiedRepayments
+```
+
+Therefore financing cannot exceed the borrower's demonstrated verified repayment history.
+
+## 8. Why the model is intentionally simple
+
+The first version of LedgerLine is designed to prove the integrity of the evidence pipeline.
+
+A complicated scoring model would introduce additional assumptions before the underlying cross-chain credit infrastructure has sufficient real-world data.
+
+The initial model therefore emphasizes:
+
+* deterministic behavior
+* explainability
+* auditability
+* resistance to payment fragmentation
+* on-chain verifiability
+
+## 9. Known limitations
+
+The current model does not yet incorporate:
+
+* repayment speed
+* loan size normalization
+* debt-to-income ratio
+* default severity
+* delinquency duration
+* historical utilization
+* industry risk
+* macroeconomic risk
+* external credit bureau data
+
+There is also currently no negative score adjustment for missed deadlines.
+
+`Expired` exists as a loan state but is not yet connected to a score penalty.
+
+## 10. Future scoring model
+
+A production scoring model can introduce weighted components such as:
+
+```text
+Repayment reliability
+        +
+Repayment speed
+        +
+Loan completion history
+        +
+Verified borrowing capacity
+        +
+Default history
+        +
+Recency
+        +
+Cross-chain history
+```
+
+The important architectural constraint should remain unchanged:
+
+> Any financial evidence used by the scoring engine must be independently verifiable.
