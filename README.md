@@ -1,87 +1,306 @@
 # LedgerLine
 
-**Proof-backed credit infrastructure for the real economy.**
+## B2B Credit Verification Infrastructure
 
-LedgerLine is a cross-chain credit infrastructure protocol that turns **verified repayment activity into portable on-chain credit intelligence**.
+### Proof Before Credit.
 
-A loan can originate and settle on a source chain such as Ethereum Sepolia while the resulting credit record is maintained on Creditcoin.
+LedgerLine verifies financial activity across chains and turns **cryptographically proven repayment events into portable credit intelligence** for lenders, fintechs, RWA platforms, and credit protocols.
 
-Instead of trusting a centralized oracle, spreadsheet, API response, or borrower declaration, LedgerLine uses **Creditcoin's Attestcoin Protocol** to cryptographically prove that the source-chain transaction actually occurred.
-
-The verified event is then decoded, validated, and dispatched into LedgerLine's on-chain credit registry.
+**Ethereum Sepolia → Attestcoin → Creditcoin CC3**
 
 > **Proof before credit.**
 
 ---
 
-## The Core Idea
+## Status
 
-LedgerLine separates **financial activity** from **credit intelligence**.
+* ✓ Source-chain contracts deployed
+* ✓ Cross-chain proof verification implemented
+* ✓ Credit profile updates implemented
+* ✓ 34 tests passing
+* ✓ Working frontend demo
+* ✓ Attestcoin / USC integration implemented
+* ✓ Ethereum Sepolia → Creditcoin CC3 flow demonstrated
 
-A source chain records what happened.
+**Current environment:** Creditcoin CC3 Testnet
 
-Attestcoin proves what happened.
+---
 
-LedgerLine records the resulting verified credit history.
+## What Is LedgerLine?
+
+Financial activity is increasingly distributed across different blockchains, lending protocols, payment systems, and financial platforms.
+
+Credit history is not.
+
+A borrower may repay a loan on one network and later seek financing somewhere else. The repayment exists, but the next lender needs trustworthy evidence that it actually happened.
+
+LedgerLine provides that verification layer.
+
+A source chain records the financial activity. Attestcoin provides cryptographic evidence of that activity. LedgerLine validates the proven event and converts it into reusable credit intelligence on Creditcoin.
 
 ```text
 Source-chain financial event
-        │
-        ▼
-Attestcoin attestation
-        │
-        ▼
-Cryptographic transaction proof
-        │
-        ▼
-LedgerLineReadabilityManager
-        │
-        ├── proof verification
-        ├── transaction-status verification
-        ├── authorized-emitter verification
-        ├── event validation / decoding
-        └── replay protection
-        │
-        ▼
-LedgerLineRegistry
-        │
-        ▼
-Verified borrower credit profile
+            │
+            ▼
+     Attestcoin / USC
+            │
+            ▼
+  Cryptographic proof
+            │
+            ▼
+ Creditcoin Block Prover
+            │
+            ▼
+LedgerLine verification boundary
+            │
+            ├── transaction success
+            ├── expected event
+            ├── authorized emitter
+            └── replay protection
+            │
+            ▼
+   LedgerLine Registry
+            │
+            ▼
+   Verified credit profile
+            │
+            ▼
+ Lender / Financing Decision
 ```
 
-The fundamental principle is simple:
+The fundamental principle is:
 
 > **Credit state should only change when the underlying financial event can be proven.**
 
 ---
 
-# What LedgerLine Solves
+# The Problem
 
-Financial activity is increasingly fragmented across chains, lending protocols, payment systems, and financial platforms.
+A lender can be told:
 
-A borrower may successfully repay a loan on one network while attempting to access financing on another.
+> "This borrower repaid a previous loan."
 
-The destination lender needs reliable evidence that the repayment actually happened.
+But where did that information come from?
 
-Traditional approaches can introduce trust assumptions through:
+It could come from:
 
-* Centralized credit databases
-* Self-reported repayment history
-* Spreadsheets
-* API-based attestations
-* Manually verified financial statements
-* Centralized oracles
-* Application-controlled databases
+* a centralized database
+* an API
+* a spreadsheet
+* an application backend
+* a borrower declaration
+* a centralized oracle
 
-LedgerLine introduces a different model.
+LedgerLine changes the trust model.
 
-Instead of trusting a statement that:
+Instead of trusting the party reporting the repayment, LedgerLine verifies evidence of the underlying source-chain transaction.
 
-> "This borrower repaid."
+```text
+"Borrower repaid"
+       ↓
+   Evidence
+       ↓
+Cryptographic verification
+       ↓
+Verified financial event
+       ↓
+Credit intelligence
+```
 
-LedgerLine verifies evidence of the underlying source-chain transaction.
+---
 
-The verified event can then become part of the borrower's on-chain credit profile.
+# What LedgerLine Is — and Is Not
+
+### LedgerLine is
+
+* B2B credit verification infrastructure
+* Cross-chain financial verification infrastructure
+* Provenance-backed credit intelligence
+* Infrastructure for lenders and financing platforms
+* A verification layer between financial activity and underwriting
+
+### LedgerLine is not
+
+* A consumer credit-score application
+* A lending marketplace
+* A centralized credit bureau
+* A centralized oracle
+* A single-chain credit system
+* A Web3-only reputation application
+
+### Web3 is the infrastructure. Finance is the market.
+
+The blockchain provides the verification and settlement primitives.
+
+The long-term customers are expected to be:
+
+* lenders
+* banks
+* fintechs
+* RWA financing platforms
+* credit protocols
+* trade-finance providers
+* financial infrastructure companies
+
+---
+
+# Architecture
+
+## Source Chain
+
+LedgerLine currently uses **Ethereum Sepolia** as its source-chain demonstration environment.
+
+The source contracts handle the financial lifecycle:
+
+```text
+Register → Fund → Repay
+```
+
+### `LedgerLineSourceRegistry`
+
+Registers loan terms and emits:
+
+```text
+LoanRegistered
+```
+
+### `LedgerLineSourceSettlement`
+
+Handles:
+
+* loan funding
+* loan repayment
+
+and emits:
+
+```text
+LoanFunded
+LoanRepaid
+```
+
+---
+
+## Cross-Chain Verification
+
+After the source-chain transaction is finalized and attested, LedgerLine generates the required proof material through the Attestcoin / USC flow.
+
+The proof path includes:
+
+* transaction proof
+* Merkle proof
+* continuity proof
+
+These are submitted to Creditcoin's native verification infrastructure.
+
+---
+
+## Creditcoin
+
+### `LedgerLineProofVerifier`
+
+A thin integration layer around Creditcoin's native Block Prover precompile.
+
+### `LedgerLineReadabilityManager`
+
+The primary trust boundary of LedgerLine.
+
+It:
+
+1. Receives the proof
+2. Verifies the proof
+3. Verifies source-chain transaction success
+4. Verifies the expected event
+5. Verifies the authorized source emitter
+6. Prevents replay
+7. Decodes the proven receipt
+8. Dispatches the verified event
+
+### `LedgerLineRegistry`
+
+The credit-intelligence layer.
+
+It maintains:
+
+* loan lifecycle state
+* verified repayment totals
+* completed-loan count
+* borrower credit score
+* last update timestamp
+
+### `LedgerLineFinancing`
+
+A downstream consumer of the verified credit registry.
+
+It applies a deterministic financing policy to verified borrower credit data and supports the current invoice-financing demonstration.
+
+The financing layer is intentionally separated from the core verification and scoring engine.
+
+---
+
+# Architecture Diagram
+
+**[INSERT FINAL ARCHITECTURE DIAGRAM HERE]**
+
+### Recommended diagram
+
+```text
+                    LEDGERLINE
+          B2B CREDIT VERIFICATION INFRASTRUCTURE
+
+
+┌──────────────────────────────────────┐
+│          SOURCE CHAIN               │
+│          Ethereum Sepolia           │
+│                                      │
+│     LedgerLine Source Contracts      │
+│                                      │
+│       Register → Fund → Repay        │
+└──────────────────┬───────────────────┘
+                   │
+                   │ Financial Event
+                   ▼
+┌──────────────────────────────────────┐
+│          ATTESTCOIN / USC            │
+│                                      │
+│ Source Block Attestation             │
+│ Transaction Proof                    │
+│ Merkle Proof                         │
+│ Continuity Proof                     │
+└──────────────────┬───────────────────┘
+                   │
+                   │ Cryptographic Evidence
+                   ▼
+┌──────────────────────────────────────┐
+│          CREDITCOIN CC3              │
+│                                      │
+│ Native Block Prover / Precompile     │
+│              │                       │
+│              ▼                       │
+│   LedgerLineReadabilityManager       │
+│                                      │
+│ Proof → Receipt → Event → Emitter    │
+│              → Replay Protection     │
+└──────────────────┬───────────────────┘
+                   │
+                   │ Verified Event
+                   ▼
+┌──────────────────────────────────────┐
+│         LEDGERLINE REGISTRY           │
+│                                      │
+│ Verified Loans                       │
+│ Verified Repayments                  │
+│ Credit Profile                       │
+│ Credit Intelligence                  │
+└──────────────────┬───────────────────┘
+                   │
+                   ▼
+┌──────────────────────────────────────┐
+│       FINANCIAL CONSUMERS             │
+│                                      │
+│ Lenders / Fintechs / RWA / Credit    │
+│ Protocols / Financing Platforms      │
+└──────────────────────────────────────┘
+```
 
 ---
 
@@ -89,54 +308,21 @@ The verified event can then become part of the borrower's on-chain credit profil
 
 LedgerLine currently demonstrates a complete cross-chain loan lifecycle.
 
-```text
-┌──────────────────────────────────┐
-│        SOURCE CHAIN              │
-│        Ethereum Sepolia          │
-│                                  │
-│   Register Loan                  │
-│          ↓                       │
-│   Fund Loan                      │
-│          ↓                       │
-│   Repay Loan                     │
-└────────────────┬─────────────────┘
-                 │
-                 │ Attestcoin proof
-                 ▼
-┌──────────────────────────────────┐
-│        CREDITCOIN CC3             │
-│                                  │
-│   Block Prover                   │
-│          ↓                       │
-│   Receipt verification           │
-│          ↓                       │
-│   Event verification             │
-│          ↓                       │
-│   Authorized emitter check       │
-│          ↓                       │
-│   Replay protection              │
-│          ↓                       │
-│   Credit registry update         │
-└──────────────────────────────────┘
-```
-
 ## 1. Register
 
-A lender registers a loan on the source chain.
+A lender registers a loan on Ethereum Sepolia.
 
-The source registry records the loan terms and emits the canonical:
+The source registry emits:
 
 ```text
 LoanRegistered
 ```
 
-event.
-
 ## 2. Fund
 
-The lender funds the registered loan through the settlement contract.
+The lender funds the registered loan.
 
-The contract emits:
+The settlement contract emits:
 
 ```text
 LoanFunded
@@ -152,47 +338,47 @@ The settlement contract emits:
 LoanRepaid
 ```
 
-## 4. Prove
+## 4. Attest and Prove
 
-The resulting source-chain transaction is submitted through the Attestcoin verification flow.
+The resulting source-chain transaction enters the Attestcoin verification flow.
 
-LedgerLine's proof infrastructure generates the required transaction, Merkle, and continuity proofs.
+LedgerLine generates the required transaction, Merkle, and continuity proofs.
 
 ## 5. Verify
 
-The Creditcoin-side verification layer submits the proof to Creditcoin's native Block Prover.
+The proof is submitted to Creditcoin's native Block Prover.
 
-LedgerLine then validates the proven receipt and expected event.
+LedgerLine then validates the proven receipt and application event.
 
 ## 6. Update Credit
 
-Only after the verification checks succeed is the verified financial event dispatched into `LedgerLineRegistry`.
+Only after the verification checks succeed is the event dispatched into `LedgerLineRegistry`.
 
-The borrower's credit profile is then updated from verified on-chain activity.
+The verified repayment can then update the borrower's credit profile.
 
 ---
 
 # Why Attestcoin Matters
 
-Attestcoin is not an optional feature in LedgerLine.
+Attestcoin is a core component of LedgerLine's trust model.
 
-It is a core part of the protocol's trust model.
+Without cross-chain verification, LedgerLine would need a trusted intermediary to tell Creditcoin:
 
-Without cross-chain verification, LedgerLine would need a trusted intermediary to tell Creditcoin that a repayment happened.
+> "A repayment happened."
 
-With Attestcoin, the system can instead establish a verifiable path:
+With Attestcoin:
 
 ```text
 Source-chain transaction
-        ↓
+          ↓
 Attestcoin proof
-        ↓
+          ↓
 Creditcoin Block Prover
-        ↓
+          ↓
 Verified transaction receipt
-        ↓
+          ↓
 Verified LedgerLine event
-        ↓
+          ↓
 Credit profile update
 ```
 
@@ -200,101 +386,23 @@ This allows financial activity to remain on its originating chain while its veri
 
 ---
 
-# Current Implementation
-
-LedgerLine currently demonstrates:
-
-* Ethereum Sepolia as the source chain
-* Creditcoin CC3 Testnet as the credit-intelligence chain
-* Attestcoin transaction-proof verification
-* Native Creditcoin Block Prover precompile integration
-* Verified source-chain event decoding
-* Authorized source-contract validation
-* Replay protection
-* On-chain loan lifecycle tracking
-* Repayment-based credit scoring
-* Lender eligibility checks
-* Invoice-financing policy consumption
-* Live contract reads from the frontend
-
-The source-chain contracts intentionally remain minimal.
-
-The cross-chain verification boundary, credit registry, scoring logic, and downstream financing policy live on Creditcoin.
-
----
-
-# Contracts
+# Deployed Testnet Contracts
 
 ## Ethereum Sepolia
 
-### `LedgerLineSourceRegistry`
-
-Registers loan terms and emits the canonical `LoanRegistered` event.
-
-### `LedgerLineSourceSettlement`
-
-Handles source-chain loan funding and repayment transfers.
-
-It emits:
-
-* `LoanFunded`
-* `LoanRepaid`
-
----
+| Contract                     | Address                                      |
+| ---------------------------- | -------------------------------------------- |
+| `LedgerLineSourceRegistry`   | `0x1Af3D4ED1D2592DdAD9c13A3004006c9785eC6fF` |
+| `LedgerLineSourceSettlement` | `0xa00DeE06b5d8DD4889683d2d526a744C2Bd67297` |
 
 ## Creditcoin CC3 Testnet
 
-### `LedgerLineProofVerifier`
-
-A thin integration layer around Creditcoin's native Block Prover precompile.
-
-### `LedgerLineReadabilityManager`
-
-The primary trust boundary of LedgerLine.
-
-It:
-
-1. Receives a proof
-2. Verifies the proof
-3. Verifies source-chain transaction success
-4. Verifies the expected event
-5. Verifies the authorized source emitter
-6. Prevents replay
-7. Decodes the proven receipt
-8. Dispatches the verified event
-
-### `LedgerLineRegistry`
-
-The credit-intelligence layer.
-
-It maintains:
-
-* Loan lifecycle state
-* Verified repayment totals
-* Completed-loan count
-* Borrower credit score
-* Last update timestamp
-
-### `LedgerLineFinancing`
-
-A downstream consumer of the verified credit registry.
-
-It applies a deterministic underwriting policy to verified borrower credit data and supports invoice-financing requests.
-
-The financing layer is intentionally separated from the core verification and scoring engine.
-
----
-
-# Deployed Testnet Contracts
-
-| Contract                       | Network                | Address                                      |
-| ------------------------------ | ---------------------- | -------------------------------------------- |
-| `LedgerLineSourceRegistry`     | Ethereum Sepolia       | `0x1Af3D4ED1D2592DdAD9c13A3004006c9785eC6fF` |
-| `LedgerLineSourceSettlement`   | Ethereum Sepolia       | `0xa00DeE06b5d8DD4889683d2d526a744C2Bd67297` |
-| `LedgerLineRegistry`           | Creditcoin CC3 Testnet | `0xde8365dAF3CFdF952E2F946F19a4DcAcd57eFf0F` |
-| `LedgerLineProofVerifier`      | Creditcoin CC3 Testnet | `0x859Cab6e9912ee39efD71f5957ecf0c61CB64494` |
-| `LedgerLineReadabilityManager` | Creditcoin CC3 Testnet | `0xCC0B4686de40Ff5ae1e0B8d58Da9175e9090610D` |
-| `LedgerLineFinancing`          | Creditcoin CC3 Testnet | See deployment output / broadcast artifact   |
+| Contract                       | Address                                      |
+| ------------------------------ | -------------------------------------------- |
+| `LedgerLineRegistry`           | `0xde8365dAF3CFdF952E2F946F19a4DcAcd57eFf0F` |
+| `LedgerLineProofVerifier`      | `0x859Cab6e9912ee39efD71f5957ecf0c61CB64494` |
+| `LedgerLineReadabilityManager` | `0xCC0B4686de40Ff5ae1e0B8d58Da9175e9090610D` |
+| `LedgerLineFinancing`          | `[INSERT DEPLOYED ADDRESS]`                  |
 
 ### Networks
 
@@ -306,172 +414,158 @@ Creditcoin CC3 Testnet
 Chain ID: 102031
 ```
 
-Creditcoin RPC:
+### Creditcoin Block Prover
 
 ```text
-https://rpc.cc3-testnet.creditcoin.network
+0x0000000000000000000000000000000000000FD2
 ```
 
 ---
 
-# Live Demonstration
+# Live Transaction Evidence
 
-The repository includes an end-to-end source-chain flow that demonstrates:
+The source-chain demonstration has already produced the following transactions:
 
-1. Minting demonstration token funds
-2. Registering a loan
-3. Funding the loan
-4. Repaying the loan
-5. Obtaining the resulting transaction hashes
-6. Waiting for Creditcoin attestation
-7. Generating Attestcoin proofs
-8. Submitting proofs to Creditcoin
-9. Verifying the source transactions
-10. Updating the LedgerLine credit registry
+| Action                      | Network          | Transaction                                                          |
+| --------------------------- | ---------------- | -------------------------------------------------------------------- |
+| Loan registered             | Ethereum Sepolia | `0xff0d3efc1eac63f918a185578222855f8918532640f43503962f6ee960bc0078` |
+| Loan funded                 | Ethereum Sepolia | `0x8f56d40f0e9370fab7c0e30e8c1fb2a7079a3761d4b42c56a5d904187adb097e` |
+| Loan repaid                 | Ethereum Sepolia | `0x45f46804615af83b450ab78f2485ef95e8dfc21702d7f506c1f7749564af00da` |
+| Cross-chain proof submitted | Creditcoin CC3   | `[INSERT FINAL CC3 PROOF TX HASH]`                                   |
+| Credit profile updated      | Creditcoin CC3   | `[INSERT FINAL CREDIT UPDATE TX HASH]`                               |
 
-The latest demonstrated source-chain transactions are:
-
-### Loan Registration
-
-```text
-0xff0d3efc1eac63f918a185578222855f8918532640f43503962f6ee960bc0078
-```
-
-### Loan Funding
-
-```text
-0x8f56d40f0e9370fab7c0e30e8c1fb2a7079a3761d4b42c56a5d904187adb097e
-```
-
-### Loan Repayment
-
-```text
-0x45f46804615af83b450ab78f2485ef95e8dfc21702d7f506c1f7749564af00da
-```
-
-The corresponding source actions are:
-
-```text
-REGISTER = 0
-FUND     = 1
-REPAY    = 2
-```
-
-The proof-submission flow is implemented in:
-
-```text
-script/flow/submitProofsToHub.ts
-```
+The final submission should replace the two placeholders with the actual Creditcoin transaction hashes.
 
 ---
 
-# Credit Scoring
+# Frontend
 
-LedgerLine currently uses a deliberately simple and transparent scoring model.
+The LedgerLine frontend consumes the deployed contracts through public RPC endpoints.
 
-### Initial Score
+It provides:
 
-```text
-500 / 1000
-```
+* Network status
+* Wallet connection
+* Credit-profile queries
+* Verification lifecycle visualization
+* Repayment/audit views
+* Lender workspace
+* Borrower workspace
+* Invoice-financing demonstration
+* Developer-facing contract information
 
-### Fully Repaid Loan
-
-A borrower receives:
-
-```text
-+15 points
-```
-
-when a loan is fully repaid.
-
-The maximum score is:
+The frontend distinguishes between:
 
 ```text
-1000
-```
-
-### Partial Repayment
-
-Partial repayments increase verified repayment volume but do **not** independently increase the credit score.
-
-This prevents repayment fragmentation from being used to artificially accumulate score increases by splitting one obligation into many smaller repayment events.
-
-The current model therefore distinguishes between:
-
-```text
-Verified repayment activity
+LIVE ON-CHAIN DATA
 ```
 
 and:
 
 ```text
-Completed credit obligations
+DEMONSTRATION / PRODUCT DATA
 ```
 
-See:
+Illustrative invoice records and underwriting examples are not represented as real customer data.
 
-```text
-docs/CREDIT_SCORING_MODEL.md
-```
+The canonical credit score and verified repayment metrics are read from the deployed LedgerLine contracts.
+
+---
+
+# Frontend Screenshots
+
+## 1. Credit Profile
+
+**[INSERT SCREENSHOT HERE]**
+
+Recommended view:
+
+* Credit score
+* Completed loans
+* Verified repayment volume
+* Verification status
+* Source chain
+* Creditcoin network
+
+---
+
+## 2. Repayment Verification
+
+**[INSERT SCREENSHOT HERE]**
+
+Recommended view:
+
+* Repayment transaction
+* Source chain
+* Attestation status
+* Proof status
+* Creditcoin verification
+* Event information
+* Credit-state update
+
+---
+
+## 3. Lender / Underwriting View
+
+**[INSERT SCREENSHOT HERE]**
+
+Recommended view:
+
+* Borrower profile
+* Credit score
+* Verified repayment history
+* Completed loans
+* Eligibility
+* Evidence/provenance
+
+---
+
+# Credit Intelligence
+
+The current implementation uses a deliberately simple and transparent scoring model.
+
+| Parameter         |               Current Model |
+| ----------------- | --------------------------: |
+| Initial score     |                         500 |
+| Fully repaid loan |                         +15 |
+| Maximum score     |                        1000 |
+| Partial repayment | Recorded; no score increase |
+
+The current model does not yet incorporate:
+
+* repayment timeliness
+* loan size
+* loan duration
+* default severity
+* portfolio behavior
+* historical risk weighting
+
+The important architectural property is that the scoring layer consumes **verified financial events**.
 
 ---
 
 # Financing Layer
 
-`LedgerLineFinancing` consumes verified metrics from `LedgerLineRegistry`.
+LedgerLine includes a deterministic financing policy demonstrating how verified credit intelligence can be consumed by a downstream financial application.
 
-The current deterministic policy is:
+| Credit Score | Demonstration Eligibility |
+| ------------ | ------------------------- |
+| `<600`       | Not eligible              |
+| `600–749`    | Up to 50%                 |
+| `750–899`    | Up to 65%                 |
+| `900–1000`   | Up to 80%                 |
 
-| Score      | Completed Loans | Advance Rate |
-| ---------- | --------------: | -----------: |
-| `< 600`    |             Any | Not eligible |
-| `600–749`  |             ≥ 1 |          50% |
-| `750–899`  |             ≥ 1 |          65% |
-| `900–1000` |             ≥ 1 |          80% |
+Eligibility is additionally capped by cumulative verified repayment activity.
 
-The resulting advance is additionally capped by the borrower's cumulative verified repayments.
-
-This creates a downstream example of how **verified credit intelligence can be consumed by a financing application**.
-
-The financing contract remains separate from the core proof-verification system.
+This policy is a demonstration of infrastructure consumption, not a universal underwriting standard.
 
 ---
 
 # Security Model
 
-LedgerLine is designed to **fail closed**.
+LedgerLine follows a fail-closed architecture.
 
-The `LedgerLineReadabilityManager` does not simply accept a claim that a repayment occurred.
-
-Before a source-chain event can affect credit state, the system requires the relevant verification conditions to pass.
-
-```text
-                 Source Transaction
-                         │
-                         ▼
-                Cryptographic Proof
-                         │
-                         ▼
-                 Block Prover
-                         │
-                         ▼
-                Receipt Validation
-                         │
-                         ▼
-                  Event Validation
-                         │
-                         ▼
-              Authorized Emitter Check
-                         │
-                         ▼
-                  Replay Protection
-                         │
-                         ▼
-                Credit State Update
-```
-
-The manager validates:
+The verification boundary validates:
 
 * Configured source chain
 * Cryptographic proof
@@ -483,57 +577,42 @@ The manager validates:
 
 If a required condition fails, the state-changing operation reverts.
 
-See:
+### Security Properties
 
-```text
-docs/THREAT_MODEL.md
-```
-
----
-
-# Security Properties
-
-The current architecture provides protection against several classes of incorrect state transitions:
-
-### Invalid proofs
+**Invalid proofs**
 
 A failed proof cannot be dispatched into the credit registry.
 
-### Failed source transactions
+**Failed source transactions**
 
 A transaction that did not successfully execute cannot become a valid credit event.
 
-### Unauthorized emitters
+**Unauthorized emitters**
 
 A valid transaction from an unrelated contract cannot be interpreted as a LedgerLine financial event.
 
-### Replay
+**Replay**
 
-The same verified query cannot be processed repeatedly to mutate credit state multiple times.
+The same verified query cannot be processed repeatedly to mutate credit state.
 
-### Repayment fragmentation
+**Repayment fragmentation**
 
-Partial repayments do not independently increase the credit score, preventing simple score farming through fragmented repayment events under the current scoring model.
+Partial repayments do not independently increase the credit score under the current scoring model.
 
 ---
 
 # Testing
 
-LedgerLine uses Foundry for smart-contract testing.
+LedgerLine uses Foundry.
 
 Run:
 
 ```bash
 forge build
-```
-
-Then:
-
-```bash
 forge test -vvv
 ```
 
-The current repository test suite reports:
+Current suite:
 
 ```text
 34 tests passed
@@ -541,7 +620,19 @@ The current repository test suite reports:
 0 skipped
 ```
 
-The test suite currently covers:
+### Test breakdown
+
+```text
+LedgerLineSourceRegistryTest       9 passed
+LedgerLineSourceSettlementTest     4 passed
+LedgerLineReadabilityManagerTest   6 passed
+LedgerLineFinancingTest           10 passed
+LedgerLineRegistryTest              5 passed
+──────────────────────────────────────
+TOTAL                              34 passed
+```
+
+The suite covers:
 
 * Source loan registration
 * Lender authorization
@@ -570,69 +661,19 @@ The test suite currently covers:
 
 ---
 
-# Test Summary
-
-Current suite:
-
-```text
-LedgerLineSourceRegistryTest       9 passed
-LedgerLineSourceSettlementTest     4 passed
-LedgerLineReadabilityManagerTest   6 passed
-LedgerLineFinancingTest           10 passed
-LedgerLineRegistryTest              5 passed
-──────────────────────────────────────
-TOTAL                              34 passed
-```
-
----
-
-# Frontend
-
-The LedgerLine frontend consumes the deployed contracts through public RPC endpoints.
-
-It provides interfaces for:
-
-* Network status
-* Wallet connection
-* Credit-profile queries
-* Verification lifecycle visualization
-* Repayment/audit views
-* Lender workspace
-* Borrower workspace
-* Invoice-financing demonstration
-* Developer-facing contract information
-
-The frontend is designed to distinguish between:
-
-```text
-LIVE ON-CHAIN DATA
-```
-
-and:
-
-```text
-DEMONSTRATION / PRODUCT DATA
-```
-
-Illustrative invoice records and underwriting examples are not represented as real customer data.
-
-The canonical credit score and verified repayment metrics are read from the deployed LedgerLine contracts.
-
----
-
 # Product Model
 
 LedgerLine is designed around three primary participants.
 
-## Borrowers
+### Borrowers
 
 Borrowers build verifiable repayment history that can potentially become portable across lending environments.
 
-## Lenders
+### Lenders
 
 Lenders can use verified repayment history as an additional input when evaluating borrowers.
 
-## Credit Protocols
+### Credit Protocols
 
 Credit protocols can consume verified credit information without requiring the original source-chain application to become a trusted reporting intermediary.
 
@@ -642,7 +683,7 @@ This positions LedgerLine as a **credit verification and reputation rail**, rath
 
 # Real-World Applications
 
-The same verification architecture can support a range of credit and financing use cases:
+The same verification architecture can support:
 
 * SME financing
 * Merchant credit
@@ -654,7 +695,7 @@ The same verification architecture can support a range of credit and financing u
 * Alternative credit underwriting
 * Cross-chain credit markets
 
-The underlying model remains the same:
+The underlying model remains:
 
 ```text
 Financial activity
@@ -672,33 +713,57 @@ Financing / underwriting
 
 ---
 
-# Architecture Principles
+# Long-Term Product Direction
 
-## Verify, Don't Trust
+LedgerLine is designed to become **chain-agnostic financial infrastructure**.
 
-Credit state should be derived from verifiable financial events rather than application assertions.
+Ethereum Sepolia is the current demonstration environment, not a permanent limitation.
 
-## Fail Closed
+### Phase 1 — Cross-Chain Credit Proofs
 
-Invalid proofs, failed transactions, unauthorized emitters, and replayed queries must not update credit state.
+Current:
 
-## Minimal Source-Chain Logic
+* Ethereum Sepolia integration
+* Loan registration
+* Loan funding
+* Loan repayment
+* Attestcoin proof generation
+* Creditcoin Block Prover verification
+* Verified event decoding
+* Credit registry
+* Repayment-based scoring
+* Financing policy
+* Testnet frontend
 
-Source chains only contain the logic necessary to record the financial event.
+### Phase 2 — Multi-Chain Credit History
 
-## Separation of Concerns
+Extend LedgerLine to additional source chains supported by the underlying verification infrastructure.
 
-Proof verification, credit registry logic, scoring, and financing policy are separated into distinct contracts.
+### Phase 3 — Lender Infrastructure
 
-## Deterministic Credit State
+Build production-facing infrastructure for:
 
-Verified events produce deterministic state transitions on Creditcoin.
+* Borrower credit profiles
+* Verified repayment history
+* Proof provenance
+* Eligibility rules
+* Risk signals
+* Financing workflows
 
-## Transparent Scoring
+### Phase 4 — Advanced Credit Intelligence
 
-The current scoring model is intentionally simple and auditable.
+Introduce additional verified signals such as:
 
-More sophisticated risk models can be added later without changing the fundamental proof-verification architecture.
+* Repayment timeliness
+* Loan size
+* Loan duration
+* Default history
+* Portfolio behavior
+* Historical performance
+
+### Phase 5 — Production Credit Network
+
+Build toward an interoperable credit network where lenders and financing protocols can consume verified repayment reputation across multiple financial environments.
 
 ---
 
@@ -717,75 +782,9 @@ Known limitations include:
 * Financing execution is not connected to a production capital provider
 * Invoice data in the frontend remains demonstrative
 * Production-grade relayer infrastructure is still required
-* The current financing policy is deterministic and experimental rather than a production underwriting model
+* Current financing policy is deterministic and experimental
 
-These limitations are explicitly documented rather than hidden assumptions.
-
----
-
-# Roadmap
-
-## Phase 1 — Cross-Chain Credit Proofs
-
-**Current**
-
-* Ethereum Sepolia source-chain integration
-* Loan registration
-* Loan funding
-* Loan repayment
-* Attestcoin proof generation
-* Creditcoin Block Prover verification
-* Verified event decoding
-* Credit registry
-* Repayment-based scoring
-* Financing policy
-* Testnet frontend
-
-## Phase 2 — Multi-Chain Credit History
-
-Extend LedgerLine to additional source chains supported by the Attestcoin verification infrastructure.
-
-## Phase 3 — Lender Infrastructure
-
-Build lender-facing infrastructure for:
-
-* Borrower credit profiles
-* Verified repayment history
-* Proof provenance
-* Eligibility rules
-* Risk signals
-* Financing workflows
-
-## Phase 4 — Advanced Credit Intelligence
-
-Introduce additional verified signals including:
-
-* Repayment timeliness
-* Loan size
-* Loan duration
-* Default history
-* Portfolio behavior
-* Historical performance
-
-## Phase 5 — Production Credit Network
-
-Build toward an interoperable credit network where lenders and financing protocols can consume verified repayment reputation across multiple financial environments.
-
----
-
-# Documentation
-
-The repository contains detailed documentation covering the protocol's architecture and operation.
-
-* `docs/ARCHITECTURE.md` — Protocol architecture and design decisions
-* `docs/ATTESTCOIN_INTEGRATION.md` — Proof-generation and verification flow
-* `docs/CREDIT_SCORING_MODEL.md` — Scoring mechanics
-* `docs/THREAT_MODEL.md` — Security assumptions and attack surfaces
-* `docs/DEPLOYMENT.md` — Deployment and testnet operations
-* `docs/TESTING.md` — Test strategy and coverage
-* `docs/PRODUCT.md` — Product, users, workflows, and use cases
-* `docs/WHITEPAPER.md` — Protocol thesis and long-term architecture
-* `docs/DEMO.md` — Reproducible hackathon demonstration
+These limitations are explicitly documented rather than hidden.
 
 ---
 
@@ -828,20 +827,58 @@ ledgerline-core/
 │   ├── THREAT_MODEL.md
 │   ├── PRODUCT.md
 │   ├── WHITEPAPER.md
-│   
+│   └── DEMO.md
 │
 └── frontend/
 ```
 
 ---
 
-# Deployment
+# Documentation
 
-Deployment instructions, environment configuration, Creditcoin-specific compiler requirements, contract deployment, and testnet operations are documented in:
+| Document                    | Purpose                                    |
+| --------------------------- | ------------------------------------------ |
+| `ARCHITECTURE.md`           | Protocol architecture and design decisions |
+| `ATTESTCOIN_INTEGRATION.md` | Proof-generation and verification flow     |
+| `CREDIT_SCORING_MODEL.md`   | Scoring mechanics                          |
+| `DEPLOYMENT.md`             | Deployment and testnet operations          |
+| `TESTING.md`                | Test strategy and coverage                 |
+| `THREAT_MODEL.md`           | Security assumptions and attack surfaces   |
+| `PRODUCT.md`                | Product, users, workflows, and use cases   |
+| `WHITEPAPER.md`             | Protocol thesis and long-term architecture |
+| `DEMO.md`                   | Reproducible hackathon demonstration       |
 
-```text
-docs/DEPLOYMENT.md
-```
+---
+
+# Technical Resources
+
+**Source Code**
+
+The complete LedgerLine smart-contract implementation, tests, deployment scripts, frontend, and integration documentation are publicly available.
+
+**GitHub:**
+`https://github.com/anjolagithub/ledgerline-core`
+
+**Live Demo:**
+`[INSERT ACTUAL DEMO URL]`
+
+**Demo Video:**
+`[INSERT ACTUAL VIDEO URL]`
+
+**Whitepaper:**
+`[INSERT FINAL WHITEPAPER URL]`
+
+---
+
+# Hackathon
+
+**BUIDL CTC 2026 Fall**
+
+**Track:** RWA
+
+**Core Infrastructure:** Creditcoin + Attestcoin Protocol
+
+LedgerLine uses Attestcoin as a fundamental component of its cross-chain verification architecture rather than as a peripheral integration.
 
 ---
 
@@ -851,21 +888,18 @@ LedgerLine's contracts were written specifically for this project.
 
 The architecture was informed by Creditcoin's public Attestcoin documentation and examples.
 
-LedgerLine's credit registry, scoring engine, financing layer, source-chain loan lifecycle, verification boundary, and application architecture were developed as components of this project.
+LedgerLine's:
+
+* credit registry
+* scoring engine
+* financing layer
+* source-chain loan lifecycle
+* verification boundary
+* application architecture
+
+were developed as components of this project.
 
 No claim is made that the project reproduces or copies proprietary implementation code.
-
----
-
-# Hackathon Context
-
-**BUIDL CTC 2026 Fall**
-
-**Track:** RWA
-
-**Core infrastructure:** Creditcoin + Attestcoin Protocol
-
-LedgerLine uses Attestcoin as a fundamental part of its cross-chain verification architecture rather than as a peripheral integration.
 
 ---
 
