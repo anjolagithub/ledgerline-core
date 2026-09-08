@@ -431,8 +431,8 @@ The source-chain demonstration has already produced the following transactions:
 | Loan registered             | Ethereum Sepolia | `0xff0d3efc1eac63f918a185578222855f8918532640f43503962f6ee960bc0078` |
 | Loan funded                 | Ethereum Sepolia | `0x8f56d40f0e9370fab7c0e30e8c1fb2a7079a3761d4b42c56a5d904187adb097e` |
 | Loan repaid                 | Ethereum Sepolia | `0x45f46804615af83b450ab78f2485ef95e8dfc21702d7f506c1f7749564af00da` |
-| Cross-chain proof submitted | Creditcoin CC3   | `[INSERT FINAL CC3 PROOF TX HASH]`                                   |
-| Credit profile updated      | Creditcoin CC3   | `[INSERT FINAL CREDIT UPDATE TX HASH]`                               |
+| Cross-chain proof submitted | Creditcoin CC3   | `0x3abe339877ae974625a0571e9f5ab08a73d881be335850eae3ac32c892d8b2f6`                                   |
+| Credit profile updated      | Creditcoin CC3   | `0x3abe339877ae974625a0571e9f5ab08a73d881be335850eae3ac32c892d8b2f6`                               |
 
 The final submission should replace the two placeholders with the actual Creditcoin transaction hashes.
 
