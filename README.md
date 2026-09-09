@@ -1,4 +1,4 @@
-# LedgerLine
+<img width="1300" height="795" alt="03-b2b-architecture" src="https://github.com/user-attachments/assets/24435dd9-32ec-4c5d-88d3-4b3738b0220c" /># LedgerLine
 
 ## B2B Credit Verification Infrastructure
 
@@ -239,7 +239,9 @@ The financing layer is intentionally separated from the core verification and sc
 
 # Architecture Diagram
 
-**[INSERT FINAL ARCHITECTURE DIAGRAM HERE]**
+<img width="1200" height="1622" alt="01-system-architecture" src="https://github.com/user-attachments/assets/260490c6-51d6-4f08-93e7-3cd020d5ee1e" />
+
+<img width="1300" height="795" alt="03-b2b-architecture" src="https://github.com/user-attachments/assets/f20323d7-1c9c-4361-9802-157aa681b111" />
 
 ### Recommended diagram
 
@@ -402,7 +404,7 @@ This allows financial activity to remain on its originating chain while its veri
 | `LedgerLineRegistry`           | `0xde8365dAF3CFdF952E2F946F19a4DcAcd57eFf0F` |
 | `LedgerLineProofVerifier`      | `0x859Cab6e9912ee39efD71f5957ecf0c61CB64494` |
 | `LedgerLineReadabilityManager` | `0xCC0B4686de40Ff5ae1e0B8d58Da9175e9090610D` |
-| `LedgerLineFinancing`          | `[INSERT DEPLOYED ADDRESS]`                  |
+| `LedgerLineFinancing`          | `0x22fA5c1C36Cc1F7557B932dE7aCDa354ee4F6F52` |
 
 ### Networks
 
@@ -476,7 +478,8 @@ The canonical credit score and verified repayment metrics are read from the depl
 
 ## 1. Credit Profile
 
-**[INSERT SCREENSHOT HERE]**
+<img width="1919" height="975" alt="image" src="https://github.com/user-attachments/assets/d6043882-59d5-4891-aed0-a258806c3030" />
+
 
 Recommended view:
 
@@ -491,7 +494,8 @@ Recommended view:
 
 ## 2. Repayment Verification
 
-**[INSERT SCREENSHOT HERE]**
+<img width="1913" height="1033" alt="image" src="https://github.com/user-attachments/assets/704eb012-f564-48d1-a8ac-b0d9ab6b4e99" />
+
 
 Recommended view:
 
@@ -507,7 +511,8 @@ Recommended view:
 
 ## 3. Lender / Underwriting View
 
-**[INSERT SCREENSHOT HERE]**
+<img width="1913" height="826" alt="image" src="https://github.com/user-attachments/assets/afcaa493-3162-4b89-af34-a79c0cff9abd" />
+
 
 Recommended view:
 
@@ -859,14 +864,14 @@ The complete LedgerLine smart-contract implementation, tests, deployment scripts
 **GitHub:**
 `https://github.com/anjolagithub/ledgerline-core`
 
-**Live Demo:**
-`[INSERT ACTUAL DEMO URL]`
+
 
 **Demo Video:**
 `[INSERT ACTUAL VIDEO URL]`
 
 **Whitepaper:**
-`[INSERT FINAL WHITEPAPER URL]`
+`(https://docs.google.com/document/d/1EgVvp4zi6WiW-zsu3ozqzXlm4pJsz4NoKbZWENfkZ3I/edit?usp=sharing)`
+
 
 ---
 
