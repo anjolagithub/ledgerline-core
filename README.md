@@ -867,10 +867,10 @@ The complete LedgerLine smart-contract implementation, tests, deployment scripts
 
 
 **Demo Video:**
-`[INSERT ACTUAL VIDEO URL]`
+`https://youtu.be/k0E1hrLPCcg`
 
 **Whitepaper:**
-`(https://docs.google.com/document/d/1EgVvp4zi6WiW-zsu3ozqzXlm4pJsz4NoKbZWENfkZ3I/edit?usp=sharing)`
+`(https://drive.google.com/file/d/11JIgG94gfGMZA4yNKwoiqmo9JyDYNaaP/view?usp=sharing)`
 
 
 ---
