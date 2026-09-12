@@ -238,8 +238,8 @@ The financing layer is intentionally separated from the core verification and sc
 ---
 
 # Architecture Diagram
+<img width="1312" height="1199" alt="image" src="https://github.com/user-attachments/assets/4d676f22-c400-43db-9b6e-82a8e8e681b9" />
 
-<img width="1200" height="1622" alt="01-system-architecture" src="https://github.com/user-attachments/assets/260490c6-51d6-4f08-93e7-3cd020d5ee1e" />
 
 <img width="1300" height="795" alt="03-b2b-architecture" src="https://github.com/user-attachments/assets/f20323d7-1c9c-4361-9802-157aa681b111" />
 
