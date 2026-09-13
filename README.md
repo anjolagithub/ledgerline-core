@@ -243,66 +243,7 @@ The financing layer is intentionally separated from the core verification and sc
 
 <img width="1300" height="795" alt="03-b2b-architecture" src="https://github.com/user-attachments/assets/f20323d7-1c9c-4361-9802-157aa681b111" />
 
-### Recommended diagram
 
-```text
-                    LEDGERLINE
-          B2B CREDIT VERIFICATION INFRASTRUCTURE
-
-
-┌──────────────────────────────────────┐
-│          SOURCE CHAIN               │
-│          Ethereum Sepolia           │
-│                                      │
-│     LedgerLine Source Contracts      │
-│                                      │
-│       Register → Fund → Repay        │
-└──────────────────┬───────────────────┘
-                   │
-                   │ Financial Event
-                   ▼
-┌──────────────────────────────────────┐
-│          ATTESTCOIN / USC            │
-│                                      │
-│ Source Block Attestation             │
-│ Transaction Proof                    │
-│ Merkle Proof                         │
-│ Continuity Proof                     │
-└──────────────────┬───────────────────┘
-                   │
-                   │ Cryptographic Evidence
-                   ▼
-┌──────────────────────────────────────┐
-│          CREDITCOIN CC3              │
-│                                      │
-│ Native Block Prover / Precompile     │
-│              │                       │
-│              ▼                       │
-│   LedgerLineReadabilityManager       │
-│                                      │
-│ Proof → Receipt → Event → Emitter    │
-│              → Replay Protection     │
-└──────────────────┬───────────────────┘
-                   │
-                   │ Verified Event
-                   ▼
-┌──────────────────────────────────────┐
-│         LEDGERLINE REGISTRY           │
-│                                      │
-│ Verified Loans                       │
-│ Verified Repayments                  │
-│ Credit Profile                       │
-│ Credit Intelligence                  │
-└──────────────────┬───────────────────┘
-                   │
-                   ▼
-┌──────────────────────────────────────┐
-│       FINANCIAL CONSUMERS             │
-│                                      │
-│ Lenders / Fintechs / RWA / Credit    │
-│ Protocols / Financing Platforms      │
-└──────────────────────────────────────┘
-```
 
 ---
 
@@ -864,6 +805,8 @@ The complete LedgerLine smart-contract implementation, tests, deployment scripts
 **GitHub:**
 `https://github.com/anjolagithub/ledgerline-core`
 
+**Frontend:**
+`https://ledgerline-wz.vercel.app/`
 
 
 **Demo Video:**
